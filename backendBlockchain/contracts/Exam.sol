@@ -5,25 +5,29 @@ pragma solidity ^0.8.9;
 /// @title Exam Contract
 contract Exam {
     address public creator;
-    /// servicer account is responsible for updating data on behalf of a student
-    address public servicer;
-    string public questionPaper;
-    string public passCode;
-    string public remark;
-    uint256 public deadline;
+    address public servicer; //account responsible for updating data on behalf of a student
+    string public questionPaper; // IPFS Hash of Encrypted Question Papaer
+    string public passCode; // Encrypted passCode
+    string public remark; // Remark string of Exam
+    uint256 public startTime; // Exam startTime
+    uint256 public endTime; // Exam endTime
 
-    struct enrolled {
-        string name;
-        uint256 submissionTime;
+    struct student {
+        uint id;
+        string meta;
         string sheetHash;
         string sheet;
     }
-    enrolled[] public enrolledStudents;
-    mapping(address => uint) public enrollmentId;
+    student[] public enrolledStudents;
 
-    constructor(address _creator, address _servicer) {
+    constructor(address _creator, address _servicer, string memory _questionPaper, string memory _passCode, string memory _remark, uint256 _startTime, uint256 _endTime) {
         creator = _creator;
         servicer = _servicer;
+        questionPaper = _questionPaper;
+        passCode = _passCode;
+        remark = _remark;
+        startTime = _startTime;
+        endTime = _endTime;
     }
 
     modifier onlyCreator() {
@@ -36,13 +40,24 @@ contract Exam {
         _;
     }
 
-    modifier beforeDeadline() {
-        require(block.timestamp <= deadline, "Time Limit Exceeded !!!");
+    modifier examStarted() {
+        require(block.timestamp >= startTime, "Exam has not begun yet !!!");
         _;
     }
 
-    modifier isEnrolled(address _student) {
-        require(enrollmentId[_student] > 0 , "This address is not enrolled");
+    modifier examTime() {
+        require(block.timestamp >= startTime, "Exam has not begun yet !!!");
+        require(block.timestamp <= endTime, "Exam has already ended !!!");
+        _;
+    }
+
+    modifier beforeDeadline() {
+        require(block.timestamp <= endTime, "Exam has already ended !!!");
+        _;
+    }
+
+    modifier isEnrolled(uint _studentId) {
+        require(enrolledStudents.length > _studentId , "Student is not enrolled");
         _;
     }
 
@@ -52,57 +67,52 @@ contract Exam {
         servicer = _servicer;
     }
 
-    /// @notice edit exam details
+    /// @notice edit exam details - Probably don't use this
     /// @param _questionPaper IPFS hash of file
     /// @param _passCode Encrypted Pass Code for accessing question file
     /// @param _remark IPFS hash of any remark / details of exam
-    /// @param _deadline Deadline of sheet hash submission
+    /// @param _startTime Exam starting Time
+    /// @param _endTime Exam Ending Time ie. Deadline for sheet hash submission
     function editExam(
         string memory _questionPaper,
         string memory _passCode,
         string memory _remark,
-        uint256 _deadline
-    ) public onlyCreator {
+        uint256 _startTime,
+        uint256 _endTime
+    ) public onlyCreator beforeDeadline {
         questionPaper = _questionPaper;
         passCode = _passCode;
         remark = _remark;
-        deadline = _deadline;
+        startTime = _startTime;
+        endTime = _endTime;
     }
 
     /// @notice enroll a new student
-    /// @param _student address of student
-    /// @param _name name of student
-    function enroll(address _student, string memory _name) public restricted beforeDeadline {
-        enrolled memory newEnrollment;
-        newEnrollment.name = _name;
+    /// @param _studentMeta student details
+    function enroll(string memory _studentMeta) public restricted beforeDeadline {
+        student memory newEnrollment;
+        newEnrollment.id = enrolledStudents.length;
+        newEnrollment.meta = _studentMeta;
         enrolledStudents.push(newEnrollment);
-        enrollmentId[_student] = enrolledStudents.length;
     }
 
     /// @notice add sheet hash before exam deadline
-    /// @param _student address of student
+    /// @param _studentId address of student
     /// @param _sheetHash Hash of answer sheet
-    function addSheetHash(address _student, string memory _sheetHash) public restricted isEnrolled(_student) beforeDeadline {
-        uint id = enrollmentId[_student];
-        enrolledStudents[id-1].sheetHash = _sheetHash;
+    function addSheetHash(uint _studentId, string memory _sheetHash) public restricted isEnrolled(_studentId) examTime {
+        enrolledStudents[_studentId].sheetHash = _sheetHash;
     }
 
     /// @notice Add the actual answer sheet
-    /// @param _student address of student
+    /// @param _studentId address of student
     /// @param _sheet IPFS hash of answer sheet file
-    function addSheet(address _student, string memory _sheet) public restricted isEnrolled(_student){
-        uint id = enrollmentId[_student];
-        enrolledStudents[id-1].sheet = _sheet;
+    function addSheet(uint _studentId, string memory _sheet) public restricted isEnrolled(_studentId) examStarted {
+        enrolledStudents[_studentId].sheet = _sheet;
     }
 
     /// @notice get details of all enrolled students
     /// @return array of type struct
-    function getEnrolledStudents() public view returns(enrolled [] memory){
+    function getEnrolledStudents() public view returns(student[] memory){
         return enrolledStudents;
-    }
-
-    /// @notice Contract destructor
-    function destroy() public onlyCreator {
-        selfdestruct(payable(creator));
     }
 }

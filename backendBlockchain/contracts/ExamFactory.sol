@@ -7,21 +7,25 @@ import './Exam.sol';
 /// @title Exam Factory Contract
 contract ExamFactory {
 
-    address public owner;
+    address payable public owner;
     Exam [] public deployedExams;
+    uint256 public examFee;
 
     constructor() {
-        owner = msg.sender;    
+        owner = payable(msg.sender); 
+        examFee =  5000000000000000; //0.005
     }
 
-    modifier onlyOwner {
-      require(msg.sender == owner , "msg.sender is not the owner");
-      _;
-    }  
+    function changeFee(uint256 _examFee) public {
+        require(msg.sender == owner, "Not Authorized");
+        examFee = _examFee;
+    }
 
     /// @notice Deploys a new exam contract
-    function createExam() public {
-        Exam newExam = new Exam(msg.sender , owner);
+    function createExam(string memory _questionPaper, string memory _passCode, string memory _remark, uint256 _startTime, uint256 _endTime) public payable{
+        require(msg.value >= examFee, "Insufficient Amount");
+        payable(owner).transfer(msg.value);
+        Exam newExam = new Exam(msg.sender , owner, _questionPaper, _passCode, _remark, _startTime, _endTime);
         deployedExams.push(newExam);
     }
     
@@ -29,10 +33,5 @@ contract ExamFactory {
     /// @return exam address type array
     function getDeplyedExams()public view returns(Exam[] memory){
         return  deployedExams;
-    }
-
-    /// @notice Contract destructor
-    function destroy() public onlyOwner{
-        selfdestruct(payable(owner));
     }
 }
