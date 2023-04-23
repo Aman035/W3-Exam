@@ -1,0 +1,39 @@
+@import '../../styles/theme/ThemeVariables.scss';
+
+.toast {
+    position: fixed;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: top 0.3s ease;
+    z-index: 9999;
+    max-width: 300px;
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  .toast.visible {
+    top: 20px;
+  }
+  
+  .toast.error {
+    @include themify($themes) {
+        background-color: themed('primary', 'primaryRed')
+      }
+  }
+  
+  .toast.warning {
+    @include themify($themes) {
+        background-color: themed('primary', 'primaryOrange')
+      }
+  }
+  
+  .toast.success {
+    @include themify($themes) {
+        background-color: themed('primary', 'primaryGreen')
+      }
+  }
+  

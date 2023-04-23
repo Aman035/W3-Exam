@@ -1,0 +1,63 @@
+$primary: (
+  primaryOrange: #f7931a,
+  primaryRed: #eb5757,
+  primaryGreen: #27ae60,
+  primaryBlue: #3898ff,
+  primaryPurple: #bb6bd9,
+);
+
+$themes: (
+  light: (
+    fill: #ffffff,
+    neutral1: #f8f8f8,
+    neutral2: #f4f4f4,
+    neutral3: #ededed,
+    neutral4: #dedede,
+    neutral5: #bbbbbb,
+    neutral6: #999999,
+    neutral7: #777777,
+    neutral8: #404040,
+    stroke: #000000,
+    primary: $primary
+  ),
+  dark: (
+    fill: #000000,
+    neutral1: #1a1a1a,
+    neutral2: #2d2d2d,
+    neutral3: #444444,
+    neutral4: #5c5c5c,
+    neutral5: #787878,
+    neutral6: #949494,
+    neutral7: #b0b0b0,
+    neutral8: #cccccc,
+    stroke: #ffffff,
+    primary: $primary
+  ),
+);
+
+@mixin themify($themes) {
+  @each $theme, $map in $themes {
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), "#{$key}");
+        $theme-map: map-merge(
+          $theme-map,
+          (
+            $key: $value,
+          )
+        ) !global;
+      }
+      @content;
+      $theme-map: null !global;
+    }
+  }
+}
+
+@function themed($keys...) {
+  $value: $theme-map;
+  @each $key in $keys {
+    $value: map-get($value, $key);
+  }
+  @return $value;
+}

@@ -1,0 +1,239 @@
+@import "../../styles/theme/ThemeVariables.scss";
+
+.container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 30px;
+}
+
+.title {
+    @include themify($themes) {
+      color: themed("stroke");
+    }
+    font-size: 30px;
+    font-weight: 500;
+    margin: 30px 0 30px 0;
+  }
+  
+  .info {
+    font-size: 14px;
+    @include themify($themes) {
+      color: themed("neutral6");
+    }
+  }
+
+
+.createExam {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding-top: 50px;
+}
+
+.tabContainer {
+  margin: 50px 0 50px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.form-input {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    margin: 20px;
+    text-align: left;
+  }
+  
+  label{
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    @include themify($themes) {
+        color: themed("neutral7");
+      }
+  }
+  
+  input, textarea {
+    padding: 0.5rem;
+    border-radius: 6px;
+    @include themify($themes) {
+        background: themed("neutral1");
+        border: 1px solid themed("neutral3");
+        color: themed("neutral8")
+      }
+  }
+
+  textarea {
+    height: 70px;
+  }
+
+  .next-button {
+    color: #fff;
+    font-weight: 400;
+    border: none;
+    margin: 30px 0;
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    font-size: 1rem;
+    @include themify($themes) {
+        background: themed("primary","primaryBlue");
+      }
+  }
+  
+  .next-button:hover {
+    cursor: pointer;
+  }
+
+  .upload-pdf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px;
+    border-radius: 5px;
+    @include themify($themes) {
+      background: themed("neutral1");
+      border: 1px solid themed("neutral3");
+      color: themed("neutral8")
+    }
+  }
+  
+  .upload-pdf.dragging {
+    border-color: #1e88e5;
+  }
+
+  .browse-label{
+    cursor: pointer;
+    @include themify($themes) {
+      color: themed("primary","primaryBlue");
+    }
+  }
+  
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+  }
+  
+  .spinner {
+    @include themify($themes) {
+      border: 6px solid themed("neutral2");
+      border-top-color: themed("primary","primaryBlue");
+      
+    }
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s ease-in-out infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }  
+
+  .exam-details {
+    padding: 20px 50px;
+    border-radius: 5px;
+    @include themify($themes) {
+      color: themed('neutral8');
+      border: 1px solid themed("neutral2");
+      background-color: themed('neutral1');
+      
+    }
+    label{
+      @include themify($themes) {
+        color: themed('stroke');
+      }
+    }
+    span{
+      font-weight: 600;
+    }
+  }
+  
+  .details-container {
+    min-width: 60vw;
+  }
+  
+  .detail {
+    display: flex;
+    align-items: left;
+    margin: 10px 0;
+  }
+  
+  .detail label {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  .detail span,
+  .detail pre {
+    overflow-wrap: break-word;
+  }
+
+  .note {
+    @include themify($themes) {
+      color: themed('stroke');
+    }
+    font-size: 14px;
+    margin-top: 50px;
+
+    span{
+      @include themify($themes) {
+        color: themed("primary","primaryBlue");
+      }
+    }
+  }
+
+  .date-range-picker {
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .picker-wrapper {
+    margin: 0 10px;
+  }
+  
+  .react-datetime {
+    display: block;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 200px;
+  }
+  
+  .react-datetime:focus {
+    outline: none;
+    border-color: #0074d9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(0, 116, 217, 0.3);
+  }
+  
+  .react-datetime__input {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: #333;
+    font-size: inherit;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .react-datetime__input::placeholder {
+    color: #999;
+  }
+  
+  
+  

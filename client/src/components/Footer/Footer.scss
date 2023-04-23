@@ -1,0 +1,22 @@
+@import '../../styles/theme/ThemeVariables.scss';
+
+.footer {
+  text-align: center;
+  margin-top: auto;
+  @include themify($themes) {
+    color: themed('neutral6')
+  }
+}
+
+.footer hr {
+  width: 85%;
+  @include themify($themes) {
+    border-color: themed('neutral1');
+  }
+}
+
+.footer p {
+  font-size: 16px;
+  padding: 30px;
+  margin: 0;
+}
