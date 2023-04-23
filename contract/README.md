@@ -2,9 +2,11 @@
 
 ### ExamFactory
 Factory contract for deploying exam Contract
-Currently Deployed from account: 0x28F1C7B4596D9db14f85c04DcBd867Bf4b14b811
-Network: Polygon
-Sddress: 0x2F9C232EDcC32A3D6a1BD04A78508e9C35d10599
+
+Deploying contracts with the account: 0x28F1C7B4596D9db14f85c04DcBd867Bf4b14b811
+Account balance: 1922526971822457989
+Network: Polygon Mumbai
+Exam Factory address: 0xE87A3884d7b1878e851622675A6A10b3801E944a
 
 ### Exam
 Contract used for every exam creation

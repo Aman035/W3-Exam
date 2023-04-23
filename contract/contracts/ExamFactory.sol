@@ -22,10 +22,10 @@ contract ExamFactory {
     }
 
     /// @notice Deploys a new exam contract
-    function createExam(string memory _questionPaper, string memory _passCode, string memory _remark, uint256 _startTime, uint256 _endTime) public payable{
+    function createExam(string memory _examData, uint256 _startTime, uint256 _endTime) public payable{
         require(msg.value >= examFee, "Insufficient Amount");
         payable(owner).transfer(msg.value);
-        Exam newExam = new Exam(msg.sender , owner, _questionPaper, _passCode, _remark, _startTime, _endTime);
+        Exam newExam = new Exam(msg.sender , owner, _examData, _startTime, _endTime);
         deployedExams.push(newExam);
     }
     
