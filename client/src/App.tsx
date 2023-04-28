@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import Exams from "./pages/Exams/Exams";
+import EachExam from "./pages/EachExam/EachExam";
 import CreateExam from "./pages/CreateExam/CreateExam";
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
@@ -65,6 +66,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/exams" element={<Exams />} />
+                <Route path="/exams/:examId" element={<EachExam />} />
                 <Route path="/create-exam" element={<CreateExam />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

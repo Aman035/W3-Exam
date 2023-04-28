@@ -1,0 +1,50 @@
+@import '../../styles/theme/ThemeVariables.scss';
+.card {
+    border-radius: 10px;
+    padding: 16px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    margin: 10px 60px;
+    @include themify($themes) {
+        color: themed('stroke');
+        background-color: themed('neutral1');
+        box-shadow: 0px 4px 8px themed('neutral4');
+      }
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    @include themify($themes) {
+        box-shadow: 0px 8px 16px themed('neutral5');
+      }
+  }
+  
+  h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  p {
+    margin-bottom: 16px;
+  }
+  
+  .info {
+    font-size: 14px;
+    color: #999;
+    @include themify($themes) {
+        color: themed('neutral7');
+      }
+  }
+  
+  .creator {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .time {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  
+  

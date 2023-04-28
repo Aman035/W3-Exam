@@ -1,6 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Web3Storage } from "web3.storage";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "react-dropzone-uploader/dist/styles.css";
 import "./CreateExam.scss";
 import styled from "styled-components";
@@ -79,7 +79,6 @@ function CreateExam() {
     try {
       if (file && name !== "" && info !== "") {
         // -----------GENERATING PASS-----------------------------
-        setSecret(generateRandomSecret(16));
         // -----------GENERATING PASS-----------------------------
         // -----------ENCRYPTING PDF-----------------------------
         const formData = new FormData();
@@ -161,6 +160,10 @@ function CreateExam() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    setSecret(generateRandomSecret(16));
+  }, []);
   return (
     <div className="container">
       <div>

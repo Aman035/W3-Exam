@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "react-dropzone-uploader/dist/styles.css";
 import "./Exams.scss";
-import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-import { useContract, useContractRead } from "wagmi";
+import { useContractRead } from "wagmi";
 import { config } from "../../config";
 import "react-datetime/css/react-datetime.css";
 import Toast from "../../components/Toast/Toast";
 import { readContracts } from "wagmi";
 import { CIDString, Web3Storage } from "web3.storage";
+import Card from "../../components/Card/Card";
 
 function Exams() {
   const [loading, setLoading] = useState(true);
@@ -21,11 +20,6 @@ function Exams() {
 
   const closeToast = () => {
     setToast(null);
-  };
-
-  const examFactoryContract = {
-    address: config.examFactoryAddress,
-    abi: config.examFactoryABI,
   };
 
   const { data, isError, isLoading } = useContractRead({
@@ -74,23 +68,16 @@ function Exams() {
       });
       const res = await client.get(examDetails[1] as CIDString);
       const files = await res?.files();
-      for (const file of files!) {
-        const data = await file.arrayBuffer();
-        const uint8Array = new Uint8Array(data);
-        const jsonStr = new TextDecoder().decode(uint8Array);
-        const jsonObj = JSON.parse(jsonStr);
-        console.log(jsonObj);
-        // const url = `https://${file.cid}.ipfs.dweb.link/`;
-        // const response = await fetch(url);
-        // console.log(response.json);
-        //     const response = await fetch(url)
-        // const data = await response.json()
-        //   const temp = await client.get(file.cid);
-        //   console.log(temp);
-      }
+      const examMeta = await files![0].arrayBuffer();
+      const uint8Array = new Uint8Array(examMeta);
+      const jsonStr = new TextDecoder().decode(uint8Array);
+      const jsonObj = JSON.parse(jsonStr);
       const data = {
+        address: each,
         creator: examDetails[0],
-        meta: examDetails[1],
+        name: jsonObj.name,
+        info: jsonObj.info,
+        examSheet: files![1],
         startTime: examDetails[2],
         endTime: examDetails[3],
       };
@@ -104,6 +91,9 @@ function Exams() {
         <h1 className="title">Exams</h1>
         <h3 className="info">You can browse all the created Exams</h3>
       </div>
+      {examData.map((exam: any) => (
+        <Card key={exam.address} {...exam} />
+      ))}
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
