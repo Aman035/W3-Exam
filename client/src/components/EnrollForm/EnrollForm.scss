@@ -1,0 +1,77 @@
+@import '../../styles/theme/ThemeVariables.scss';
+.enroll-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 5px;
+    padding: 20px;
+    width: 400px;
+    @include themify($themes) {
+        background-color: themed('neutral1');
+        box-shadow: 0px 0px 5px 0px themed('neutral5');
+      }
+  }
+  
+  .enroll-modal h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .enroll-modal form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .enroll-modal label {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  
+  .enroll-modal input {
+    font-size: 16px;
+    padding: 10px;
+    margin: 10px 0 20px 0;
+    @include themify($themes) {
+        border: 1px solid themed('neutral4');
+      }
+  }
+
+  .enroll-modal button.enroll-submit-button {
+    font-size: 18px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    }
+    
+    .enroll-modal button.enroll-submit-button:hover {
+    background-color: #218838;
+    }
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+  
+  .close-button:focus {
+    outline: none;
+  }
+  
+  .close-button svg {
+    color: gray;
+    font-size: 1.5rem;
+  }
+  
+  .close-button:hover svg {
+    @include themify($themes) {
+        color: themed('stroke');
+      }
+  }

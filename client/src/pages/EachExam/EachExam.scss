@@ -1,0 +1,64 @@
+@import "../../styles/theme/ThemeVariables.scss";
+
+.exam-data-container {
+    max-width: 600px;
+    margin: 50px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    @include themify($themes) {
+        color: themed("stroke");
+      }
+  }
+
+  .connect {
+    margin: 30px 0;
+  }
+  
+  .exam-data-container h1 {
+    font-size: 36px;
+    margin-top: 0;
+  }
+  
+  .exam-data-container p {
+    font-size: 18px;
+    margin-bottom: 10px;
+    @include themify($themes) {
+        color: themed("neutral8");
+      }
+  }
+  
+  .exam-data-container p strong {
+    font-weight: bold;
+  }
+  
+  .exam-data-container .download-button {
+    font-size: 18px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    margin: 30px;
+  }
+  
+  .exam-data-container .download-button:hover {
+    background-color: #0069d9;
+  }
+  
+  .exam-data-container .enroll-button {
+    font-size: 18px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    margin: 0 0 30px 0;
+  }
+  
+  .exam-data-container .enroll-button:hover {
+    background-color: #218838;
+  }

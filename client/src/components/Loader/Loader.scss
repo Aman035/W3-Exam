@@ -1,0 +1,24 @@
+
+In the example I provided, the loading component has a class name of loading. This class name is used in the component's CSS to style the loading icon and message.
+
+Here's an example of what the CSS might look like for this component:
+@import '../../styles/theme/ThemeVariables.scss';
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin: 2rem 0;
+  @include themify($themes) {
+    color: themed('neutral2');
+  }
+}
+
+.loading svg {
+  font-size: 2rem;
+  margin-right: 1rem;
+  @include themify($themes) {
+    color: themed('neutral1');
+  }
+}
