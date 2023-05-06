@@ -32,7 +32,11 @@
   },
   {
     "inputs": [
-      { "internalType": "string", "name": "_sheet", "type": "string" }
+      {
+        "internalType": "string",
+        "name": "_sheet",
+        "type": "string"
+      }
     ],
     "name": "addSheet",
     "outputs": [],
@@ -61,7 +65,11 @@
     "inputs": [],
     "name": "creator",
     "outputs": [
-      { "internalType": "address", "name": "", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -93,7 +101,11 @@
     "inputs": [],
     "name": "endTime",
     "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -113,7 +125,11 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
     "name": "enrolledStudents",
     "outputs": [
@@ -122,13 +138,21 @@
         "name": "wallet",
         "type": "address"
       },
-      { "internalType": "string", "name": "meta", "type": "string" },
+      {
+        "internalType": "string",
+        "name": "meta",
+        "type": "string"
+      },
       {
         "internalType": "string",
         "name": "sheetHash",
         "type": "string"
       },
-      { "internalType": "string", "name": "sheet", "type": "string" }
+      {
+        "internalType": "string",
+        "name": "sheet",
+        "type": "string"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -137,7 +161,11 @@
     "inputs": [],
     "name": "examData",
     "outputs": [
-      { "internalType": "string", "name": "", "type": "string" }
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -179,11 +207,19 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
     "name": "isEnrolled",
     "outputs": [
-      { "internalType": "bool", "name": "", "type": "bool" }
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -205,7 +241,11 @@
     "inputs": [],
     "name": "servicer",
     "outputs": [
-      { "internalType": "address", "name": "", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -214,18 +254,30 @@
     "inputs": [],
     "name": "startTime",
     "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
     "name": "studentId",
     "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
     "stateMutability": "view",
     "type": "function"

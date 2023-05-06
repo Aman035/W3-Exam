@@ -1,7 +1,3 @@
-
-In the example I provided, the loading component has a class name of loading. This class name is used in the component's CSS to style the loading icon and message.
-
-Here's an example of what the CSS might look like for this component:
 @import '../../styles/theme/ThemeVariables.scss';
 .loading {
   display: flex;
