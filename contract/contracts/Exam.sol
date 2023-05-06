@@ -45,23 +45,23 @@ contract Exam {
     }
 
     modifier examStarted() {
-        require(block.timestamp >= startTime, "Exam has not begun yet !!!");
+        require(block.timestamp * 1000 >= startTime, "Exam has not begun yet !!!");
         _;
     }
 
     modifier examTime() {
-        require(block.timestamp >= startTime, "Exam has not begun yet !!!");
-        require(block.timestamp <= endTime, "Exam has already ended !!!");
+        require(block.timestamp * 1000 >= startTime, "Exam has not begun yet !!!");
+        require(block.timestamp * 1000 <= endTime, "Exam has already ended !!!");
         _;
     }
 
     modifier beforeDeadline() {
-        require(block.timestamp <= endTime, "Exam has already ended !!!");
+        require(block.timestamp * 1000 <= endTime, "Exam has already ended !!!");
         _;
     }
 
     modifier afterDeadline() {
-        require(block.timestamp >= endTime, "Exam has not ended yet!");
+        require(block.timestamp * 1000 >= endTime, "Exam has not ended yet!");
         _;
     }
 
