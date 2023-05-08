@@ -12,6 +12,12 @@ import EnrollForm from '../../components/EnrollForm/EnrollForm'
 import SHA from 'sha.js'
 import { QRCodeDisplay } from '../../components/QRCode/QRCode'
 
+interface ExamStatsData {
+  name: string
+  sheet: File | null
+  verified: boolean
+}
+
 function EachExam() {
   const [isLoading, setLoading] = useState(true)
   const [isEnrolled, setEnrolled] = useState(false)
@@ -35,6 +41,7 @@ function EachExam() {
   const [examTime, setExamTime] = useState(false)
   const [examOver, setExamOver] = useState(false)
   const [sheetHash, setSheetHash] = useState('')
+  const [enrolledStudents, setEnrolledStudents] = useState([])
 
   const closeToast = () => {
     setToast(null)
@@ -103,15 +110,65 @@ function EachExam() {
     setEnrolled(data as boolean)
   }
 
+  const getEnrolledStudents = async () => {
+    const enrolled: any = await readContract({
+      address: examId,
+      abi: config.examABI,
+      functionName: 'getEnrolledStudents',
+    })
+
+    let data: any = []
+    enrolled.map(async (each: any) => {
+      const client = new Web3Storage({
+        token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
+      })
+      const metaCID = await client.get(each[1] as CIDString)
+      const metaFile = await metaCID?.files()
+      const studentMeta: any = await metaFile![0].arrayBuffer()
+      const uint8Array = new Uint8Array(studentMeta)
+      const jsonStr = new TextDecoder().decode(uint8Array)
+      const jsonObj = JSON.parse(jsonStr)
+      let verified = false
+
+      let sheet: File | null = null
+      try {
+        const sheetCID = await client.get(each[3] as CIDString)
+        const sheetFile = await sheetCID?.files()
+        sheet = sheetFile![0]
+
+        // generate hash and check
+        const hash = SHA('sha256')
+        const dataBuffer = await readFileAsBuffer(sheet)
+        hash.update(dataBuffer)
+        const studentSheetHash = hash.digest('hex')
+        if (studentSheetHash === each[2]) verified = true
+      } catch (err) {
+        // do nothing as sheet is not found
+      }
+
+      data.push({
+        name: jsonObj.name as string,
+        sheet: sheet,
+        verified: verified,
+      })
+    })
+
+    setEnrolledStudents(data as any)
+  }
+
   useEffect(() => {
     getExamData()
     setLoading(false)
   }, [])
 
-  const handleDownload = () => {
+  useEffect(() => {
+    getEnrolledStudents()
+  }, [])
+
+  const handleDownload = (fileToBeDownloaded: File) => {
     const anchor = document.createElement('a')
-    anchor.href = URL.createObjectURL(examData.examSheet)
-    anchor.download = examData.examSheet.name
+    anchor.href = URL.createObjectURL(fileToBeDownloaded)
+    anchor.download = fileToBeDownloaded.name
     document.body.appendChild(anchor)
     anchor.click()
     document.body.removeChild(anchor)
@@ -219,12 +276,12 @@ function EachExam() {
     })
   }
 
-  const handleFileHash = async () => {
-    if (!file) {
+  const handleFileHash = async (fileToBeHashed: File) => {
+    if (!fileToBeHashed) {
       throw new Error('File is null or undefined')
     }
     const hash = SHA('sha256')
-    const dataBuffer = await readFileAsBuffer(file)
+    const dataBuffer = await readFileAsBuffer(fileToBeHashed)
     hash.update(dataBuffer)
     setSheetHash(hash.digest('hex'))
   }
@@ -234,6 +291,7 @@ function EachExam() {
       if (!file) {
         throw new Error('No File Found')
       }
+      setLoading(true)
       // -----------UPLOAD TO IPFS-----------------------------
       const client = new Web3Storage({
         token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
@@ -248,6 +306,7 @@ function EachExam() {
       // -----------CONTRACT CALL-----------------------------
       const tx = await examContract?.addSheet(hash)
       await tx.wait()
+      setLoading(false)
     } catch (err) {
       setToast({
         message: 'Unable To Submit Answer Sheet in Exam !!!',
@@ -255,6 +314,51 @@ function EachExam() {
       })
       console.log(err)
     }
+  }
+
+  // Function to render each card
+  const renderCard = (cardData: ExamStatsData) => {
+    return (
+      <div className="exam-card" key={cardData.name}>
+        <div className="exam-name">{cardData.name}</div>
+        {cardData.sheet && (
+          <button
+            className="answer-sheet-button"
+            onClick={() => handleDownload(cardData.sheet as File)}
+          >
+            Answer Sheet
+          </button>
+        )}
+        <div
+          className={`label ${cardData.verified ? 'verified' : 'unverified'}`}
+        >
+          {cardData.verified ? 'Sheet Verified' : 'Sheet Unverified'}
+        </div>
+      </div>
+    )
+  }
+
+  // Function to group the cards in each row
+  const groupCards = (cards: ExamStatsData[], size: number) => {
+    const groups = []
+    for (let i = 0; i < cards.length; i += size) {
+      groups.push(cards.slice(i, i + size))
+    }
+    return groups
+  }
+
+  // Render the grouped cards
+  const renderGroupedCards = () => {
+    const groupedCards = groupCards(enrolledStudents, 3) // Grouping the cards in rows of 3
+    return groupedCards.map((cardGroup, index) => {
+      return (
+        <div className="exam-card-row" key={index}>
+          {cardGroup.map((card) => {
+            return renderCard(card)
+          })}
+        </div>
+      )
+    })
   }
 
   useEffect(() => {
@@ -297,7 +401,10 @@ function EachExam() {
       <p>
         <strong>End Time:</strong> {examData.endTime.toLocaleString()}
       </p>
-      <button className="download-button" onClick={handleDownload}>
+      <button
+        className="download-button"
+        onClick={() => handleDownload(examData.examSheet)}
+      >
         Download Exam Sheet
       </button>
       {isConnected && !isEnrolled && (
@@ -344,7 +451,10 @@ function EachExam() {
           {file && examTime && (
             <>
               {sheetHash === '' && (
-                <button className="next-button" onClick={handleFileHash}>
+                <button
+                  className="next-button"
+                  onClick={() => handleFileHash(file)}
+                >
                   Generate Sheet Hash
                 </button>
               )}
@@ -356,7 +466,7 @@ function EachExam() {
               )}
             </>
           )}
-          {file && examOver && (
+          {file && examOver && !isLoading && (
             <button className="next-button" onClick={handleFileUpload}>
               Upload Answer Sheet
             </button>
@@ -368,6 +478,10 @@ function EachExam() {
           )}
         </>
       )}
+      <div className="exam-stats">
+        <h2>Exam Stats</h2>
+        <div className="exam-card-container">{renderGroupedCards()}</div>
+      </div>
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}

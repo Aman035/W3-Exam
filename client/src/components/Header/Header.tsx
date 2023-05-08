@@ -1,39 +1,33 @@
-import { useContext } from "react";
-import { Link } from "react-router-dom";
-import { ThemeContext } from "../../contexts/Theme";
-import "./Header.scss";
+import { useContext } from 'react'
+import { Link } from 'react-router-dom'
+import { ThemeContext } from '../../contexts/Theme'
+import './Header.scss'
 
 function Header() {
-  const { theme, setTheme } = useContext(ThemeContext);
+  const { theme, setTheme } = useContext(ThemeContext)
 
   const handleThemeChange = () => {
-    const isCurrentDark = theme === "dark";
-    setTheme(isCurrentDark ? "light" : "dark");
-    localStorage.setItem("default-theme", isCurrentDark ? "light" : "dark");
-  };
+    const isCurrentDark = theme === 'dark'
+    setTheme(isCurrentDark ? 'light' : 'dark')
+    localStorage.setItem('default-theme', isCurrentDark ? 'light' : 'dark')
+  }
 
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
         Min-W3-Exam
       </Link>
-      <div className="toggle-btn-section">
-        <div className={`toggle-checkbox m-vertical-auto`}>
-          <input
-            className="toggle-btn__input"
-            type="checkbox"
-            name="checkbox"
-            onChange={handleThemeChange}
-            checked={theme === "dark"}
-          />
-          <button
-            type="button"
-            className={`toggle-btn__input-label`}
-            onClick={handleThemeChange}
-          ></button>
-        </div>
-      </div>
+      {/* <div className="toggle-btn-section">
+        <button onClick={handleThemeChange} className="themeBtn">
+          {theme === 'light' ? '🌞' : '🌙'}
+        </button>
+      </div> */}
       <ul className="navbar-nav">
+        <li className="nav-item">
+          <button onClick={handleThemeChange} className="themeBtn">
+            {theme === 'light' ? '🌞' : '🌙'}
+          </button>
+        </li>
         <li className="nav-item">
           <Link to="/" className="nav-link">
             Home
@@ -51,7 +45,7 @@ function Header() {
         </li>
       </ul>
     </nav>
-  );
+  )
 }
 
-export default Header;
+export default Header
