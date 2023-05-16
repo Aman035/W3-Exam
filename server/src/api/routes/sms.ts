@@ -6,12 +6,11 @@ const route = Router()
 
 export default (app: Router) => {
   app.use(errors())
-  app.use(route)
+  app.use(`/sms`, route)
 
   route.post('/', async (req: Request, res: Response, next: NextFunction) => {
-    Logger.debug('Calling with command: %o', req.body.command)
     try {
-      return res.status(201).json('W3 Sever')
+      // todo call Add Sheet Hash
     } catch (e) {
       Logger.error('🔥 error: %o', e)
       return next(e)

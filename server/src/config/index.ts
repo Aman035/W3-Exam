@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 const envFound = dotenv.config()
+import examABI from './examABI.json'
 
 if (envFound.error) {
   // This error should crash whole process
@@ -15,16 +16,23 @@ export default {
   logs: {
     level: process.env.LOG_LEVEL || 'silly',
   },
-  // API configs
+
+  /**
+   * API Config
+   */
   api: {
     prefix: '/api',
   },
-  // Provider
-  provider: process.env.PROVIDER,
-  //chainId
+
+  /**
+   * WEB3 Config
+   */
+  provider: process.env.PROVIDER || '',
   chainId: 80001,
-  //servicer private key
+  servicerAccount: process.env.ACCOUNT || '',
   servicerPvtKey: process.env.PRIVATE_KEY || '',
+  contractABI: examABI,
+
   /**
    * Twilio Config
    */

@@ -1,8 +1,7 @@
 import { Router } from 'express'
-import routes from './routes'
+import sms from './routes/sms'
 export default () => {
   const app = Router()
-  routes(app)
-
+  sms(app)
   return app
 }

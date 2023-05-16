@@ -14,6 +14,10 @@ export default (app: express.Application) => {
   app.use(bodyParser.json())
   app.use(errors())
 
+  app.get('/', (req, res) => {
+    res.send('Welcome to W3 Exam Server!')
+  })
+
   app.get('/status', (req, res) => {
     res.status(200).end()
   })
