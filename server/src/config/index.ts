@@ -39,4 +39,9 @@ export default {
   twilioSID: process.env.TWILIO_ACCOUNT_SID,
   twilioToken: process.env.TWILIO_AUTH_TOKEN,
   twilioNum: process.env.TWILIO_PHONE_NO,
+
+  /**
+   * Web3 Storage Config
+   */
+  web3StorageToken: process.env.WEB3_STORAGE_TOKEN || '',
 }

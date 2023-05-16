@@ -11,7 +11,7 @@ export default (app: express.Application) => {
   app.enable('trust proxy')
   app.use(cors())
   app.use(helmet())
-  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: false }))
   app.use(errors())
 
   app.get('/', (req, res) => {

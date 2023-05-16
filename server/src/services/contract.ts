@@ -4,6 +4,12 @@ import config from '../config'
 const web3 = new Web3(config.provider as string)
 const contractABI: any = config.contractABI
 
+/**
+ * Query on chain contract
+ * @param contractFunction
+ * @param contractAddress
+ * @returns
+ */
 export const getContractData = async (
   contractFunction: string,
   contractAddress: string
@@ -13,6 +19,13 @@ export const getContractData = async (
   return result
 }
 
+/**
+ * Tx call to on chain contract
+ * @param contractAddress
+ * @param contractFunction
+ * @param params
+ * @returns
+ */
 export const callContractFunction = async (
   contractAddress: string,
   contractFunction: string,
