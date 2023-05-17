@@ -5,7 +5,7 @@ import { config } from '../../config'
 import 'react-datetime/css/react-datetime.css'
 import Toast from '../../components/Toast/Toast'
 import { readContracts, useContract, useSigner, useAccount } from 'wagmi'
-import { readContract } from '@wagmi/core'
+import { readContract, signMessage } from '@wagmi/core'
 import { CIDString, Web3Storage } from 'web3.storage'
 import './EachExam.scss'
 import EnrollForm from '../../components/EnrollForm/EnrollForm'
@@ -119,6 +119,7 @@ function EachExam() {
 
     let data: any = []
     enrolled.map(async (each: any) => {
+      console.log(each)
       const client = new Web3Storage({
         token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
       })
@@ -283,7 +284,9 @@ function EachExam() {
     const hash = SHA('sha256')
     const dataBuffer = await readFileAsBuffer(fileToBeHashed)
     hash.update(dataBuffer)
-    setSheetHash(hash.digest('hex'))
+    const currentFileHash = hash.digest('hex')
+    const signature = await signMessage({ message: currentFileHash })
+    setSheetHash(`SUBMIT ${currentFileHash} ${examData.address} ${signature}`)
   }
 
   const handleFileUpload = async () => {
@@ -461,7 +464,7 @@ function EachExam() {
               {sheetHash !== '' && (
                 <div>
                   <QRCodeDisplay hash={sheetHash} />
-                  <p>Note: SMS this hash to this no. - xxxx</p>
+                  <p>Note: Send SMS to +14155238886 to submit Sheet Hash</p>
                 </div>
               )}
             </>

@@ -36,21 +36,19 @@ export const callContractFunction = async (
 
   const contract = new web3.eth.Contract(contractABI, contractAddress)
   const encodedABI = contract.methods[contractFunction](...params).encodeABI()
-  const gasPrice = await web3.eth.getGasPrice()
-  const gasLimit = await contract.methods[contractFunction](
-    ...params
-  ).estimateGas()
 
+  const gasPrice = await web3.eth.getGasPrice()
+  // const gasLimit = await contract.methods[contractFunction](
+  //   ...params
+  // ).estimateGas()
   const tx = {
     from: account,
     to: contractAddress,
     data: encodedABI,
     gasPrice: gasPrice,
-    gas: gasLimit,
+    gas: 10000000,
   }
-
   const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey)
-
   const txReceipt = await web3.eth.sendSignedTransaction(
     signedTx.rawTransaction as string
   )

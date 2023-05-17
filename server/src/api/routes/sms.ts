@@ -2,6 +2,9 @@ import { Router, Request, Response, NextFunction } from 'express'
 import { errors } from 'celebrate'
 import Logger from '../../loaders/logger'
 import { sendSMS } from '../../services/twilio'
+import { getSigner, verifySignature } from '../../services/signature'
+import { callContractFunction } from '../../services/contract'
+import config from '../../config'
 
 const route = Router()
 
@@ -11,17 +14,26 @@ export default (app: Router) => {
 
   route.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // body has action and a string
-      // action = PUBLISH - msg password string to everyone
-      // action = SUBMIT - submit sheet hash
-      // todo call Add Sheet Hash
-      throw new Error('Sd')
-    } catch (e) {
+      const [action, msg, contractAddress, sign] = req.body.Body.split(' ')
+      if (action === 'SUBMIT') {
+        const signer = getSigner(msg, sign)
+        await callContractFunction(contractAddress, 'addSheetHash', [
+          signer,
+          msg,
+        ])
+      } else if (action === 'PUBLISH') {
+        if (!verifySignature(msg, sign, config.servicerAccount))
+          throw new Error('Invalid Signature')
+      } else throw new Error('Invalid Action!!')
+
+      await sendSMS('Success', req.body.From)
+    } catch (e: any) {
       Logger.error('🔥 error: %o', e)
-      sendSMS(
+      await sendSMS(
         `Error In Submitting Sheet Hash!\nPlease Check if the message format is correct.\nPlease Retry or contact the exam creator`,
         req.body.From
       )
+      await sendSMS(e.message, req.body.From)
       return next(e)
     }
   })

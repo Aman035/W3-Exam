@@ -9,7 +9,7 @@ interface QRCodeProps {
 export function QRCodeDisplay(props: QRCodeProps) {
   return (
     <div className="qr-code-container">
-      <p>State sheet hash: {props.hash}</p>
+      <p>{props.hash}</p>
       <div className="qr-code">
         <QRCode value={props.hash} />
       </div>
