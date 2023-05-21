@@ -3,7 +3,7 @@ import examFactoryABI from './abis/ExamFactory.json'
 
 export const config = {
   examABI: examABI,
-  examFactoryAddress: '0x28E57788cC23b34a03DD74008Bafb99a5ba6Be6c',
+  examFactoryAddress: '0x0f22374F9595FDDE0B91c0c1b70c522151e85a39',
   examFactoryABI: examFactoryABI,
   alechemyKey: process.env.REACT_APP_ALCHEMY_KEY,
   web3StorageToken: process.env.REACT_APP_WEB3_STORAGE_TOKEN,

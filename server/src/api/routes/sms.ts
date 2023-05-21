@@ -3,8 +3,9 @@ import { errors } from 'celebrate'
 import Logger from '../../loaders/logger'
 import { sendSMS } from '../../services/twilio'
 import { getSigner, verifySignature } from '../../services/signature'
-import { callContractFunction } from '../../services/contract'
+import { callContractFunction, getContractData } from '../../services/contract'
 import config from '../../config'
+import { IPFSData } from '../../services/ipfs'
 
 const route = Router()
 
@@ -21,19 +22,31 @@ export default (app: Router) => {
           signer,
           msg,
         ])
+        await sendSMS('Success', req.body.From)
       } else if (action === 'PUBLISH') {
-        if (!verifySignature(msg, sign, config.servicerAccount))
+        // ALLOW ONLY CREATOR TO PUBLISH
+        const creator = await getContractData('creator', contractAddress)
+        if (!verifySignature(msg, sign, creator))
           throw new Error('Invalid Signature')
-      } else throw new Error('Invalid Action!!')
 
-      await sendSMS('Success', req.body.From)
+        const result = await getContractData(
+          'getEnrolledStudents',
+          contractAddress
+        )
+        result.forEach(async (each: any) => {
+          const detailsHash = each[1]
+          const details = await IPFSData(detailsHash)
+          try {
+            await sendSMS(`Exam Password: ${msg}`, `whatsapp:${details.phone}`)
+            await sendSMS(`Sent to ${details.name}`, req.body.From)
+          } catch (err) {
+            await sendSMS(`Can't send to ${details.name}`, req.body.From)
+          }
+        })
+      } else throw new Error('Invalid Action!!')
     } catch (e: any) {
       Logger.error('🔥 error: %o', e)
-      await sendSMS(
-        `Error In Submitting Sheet Hash!\nPlease Check if the message format is correct.\nPlease Retry or contact the exam creator`,
-        req.body.From
-      )
-      await sendSMS(e.message, req.body.From)
+      await sendSMS('Failed', req.body.From)
       return next(e)
     }
   })

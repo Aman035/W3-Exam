@@ -42,6 +42,8 @@ function EachExam() {
   const [examOver, setExamOver] = useState(false)
   const [sheetHash, setSheetHash] = useState('')
   const [enrolledStudents, setEnrolledStudents] = useState([])
+  const [password, setPassword] = useState('')
+  const [passwordMsg, setPasswordMsg] = useState('')
 
   const closeToast = () => {
     setToast(null)
@@ -119,7 +121,6 @@ function EachExam() {
 
     let data: any = []
     enrolled.map(async (each: any) => {
-      console.log(each)
       const client = new Web3Storage({
         token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
       })
@@ -385,6 +386,12 @@ function EachExam() {
     }
   }, [examData.startTime, examData.endTime])
 
+  const handlePublish = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const signature = await signMessage({ message: password })
+    setPasswordMsg(`PUBLISH ${password} ${examData.address} ${signature}`)
+  }
+
   return (
     <div className="exam-data-container">
       <h1>{examData.name}</h1>
@@ -410,6 +417,30 @@ function EachExam() {
       >
         Download Exam Sheet
       </button>
+      {isConnected && address === examData.creator && (
+        <div className="pass">
+          <form onSubmit={handlePublish}>
+            <label className="pass">Exam Password</label>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button className="download-button" type="submit">
+              Pushlish
+            </button>
+          </form>
+          {passwordMsg !== '' && (
+            <div>
+              <QRCodeDisplay hash={passwordMsg} />
+              <p>
+                Note: Send SMS to +14155238886 to broadcast question sheet
+                password to encrolled students
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       {isConnected && !isEnrolled && (
         <button className="enroll-button" onClick={handleEnroll}>
           Enroll In Exam
