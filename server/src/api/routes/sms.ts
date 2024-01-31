@@ -4,7 +4,6 @@ import Logger from '../../loaders/logger'
 import { sendSMS } from '../../services/twilio'
 import { getSigner, verifySignature } from '../../services/signature'
 import { callContractFunction, getContractData } from '../../services/contract'
-import config from '../../config'
 import { IPFSData } from '../../services/ipfs'
 
 const route = Router()
