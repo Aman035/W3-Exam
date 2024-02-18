@@ -43,5 +43,5 @@ export default {
   /**
    * Web3 Storage Config
    */
-  web3StorageToken: process.env.WEB3_STORAGE_TOKEN || '',
+  spheronToken: process.env.SPHERON_TOKEN || '',
 }

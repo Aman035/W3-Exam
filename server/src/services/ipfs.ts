@@ -1,19 +1,24 @@
-import { Web3Storage } from 'web3.storage'
-import config from '../config'
+import axios from 'axios'
 
 export const IPFSGet = async (cid: string): Promise<any> => {
-  const client = new Web3Storage({ token: config.web3StorageToken })
-  const metaCID = await client.get(cid)
-  const metaFile: any = await metaCID?.files()
-  const studentMeta: any = Buffer.from(await metaFile![0].arrayBuffer())
-  const uint8Array = new Uint8Array(studentMeta)
-  const jsonStr = new TextDecoder().decode(uint8Array)
-  const jsonObj = JSON.parse(jsonStr)
-  return jsonObj
-}
+  try {
+    // Perform axios GET request to the specified URL
+    const response = await axios.get(`https://ipfs.spheron.link/ipfs/${cid}`)
 
-export const IPFSUpload = async (data: any): Promise<string> => {
-  const client = new Web3Storage({ token: config.web3StorageToken })
-  const cid = await client.put([data])
-  return cid.toString()
+    // Check if response is successful
+    if (response.status === 200) {
+      // Parse the JSON response data
+      const jsonObj = response.data
+      return jsonObj
+    } else {
+      // Handle unsuccessful response
+      throw new Error(
+        `Failed to fetch data from IPFS. Status: ${response.status}`
+      )
+    }
+  } catch (error) {
+    // Handle any errors that occurred during the request
+    console.error('Error fetching data from IPFS:', error)
+    throw error
+  }
 }
