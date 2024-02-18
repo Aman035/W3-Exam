@@ -4,7 +4,7 @@ import Logger from '../../loaders/logger'
 import { sendSMS } from '../../services/twilio'
 import { getSigner, verifySignature } from '../../services/signature'
 import { callContractFunction, getContractData } from '../../services/contract'
-import { IPFSData } from '../../services/ipfs'
+import { IPFSGet } from '../../services/ipfs'
 
 const route = Router()
 
@@ -34,7 +34,7 @@ export default (app: Router) => {
         )
         result.forEach(async (each: any) => {
           const detailsHash = each[1]
-          const details = await IPFSData(detailsHash)
+          const details = await IPFSGet(detailsHash)
           try {
             await sendSMS(`Exam Password: ${msg}`, `whatsapp:${details.phone}`)
             await sendSMS(`Sent to ${details.name}`, req.body.From)
