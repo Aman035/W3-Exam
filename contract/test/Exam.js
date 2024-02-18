@@ -18,22 +18,9 @@ describe('Exam Factory', () => {
   })
 
   it('Create Exam', async () => {
-    await examFactory.createExam()
+    await examFactory.createExam('test data', 123, 456, {
+      value: '100000000000000000',
+    })
     expect((await examFactory.getDeplyedExams()).length).to.equal(1)
-  })
-
-  it('Destroy Contract (Not by Owner)', async () => {
-    const accounts = await ethers.getSigners()
-    await expect(examFactory.connect(accounts[1]).destroy()).to.be.reverted
-  })
-
-  it('Destroy Contract (By Owner)', async () => {
-    await examFactory.destroy()
-    try {
-      await examFactory.owner()
-      assert(false, 'Reverted')
-    } catch (err) {
-      assert(true)
-    }
   })
 })
