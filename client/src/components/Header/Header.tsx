@@ -15,7 +15,7 @@ function Header() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        Min-W3-Exam
+        W3-Exam
       </Link>
       {/* <div className="toggle-btn-section">
         <button onClick={handleThemeChange} className="themeBtn">
