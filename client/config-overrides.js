@@ -1,21 +1,23 @@
-const webpack = require("webpack");
+const webpack = require('webpack')
 
 module.exports = function override(config) {
-  const fallback = config.resolve.fallback || {};
-  config.resolve.fallback = fallback;
+  const fallback = config.resolve.fallback || {}
+  fallback.crypto = require.resolve('crypto-browserify')
+  fallback.stream = require.resolve('stream-browserify')
+  config.resolve.fallback = fallback
   config.plugins = (config.plugins || []).concat([
     new webpack.ProvidePlugin({
-      process: "process/browser",
-      Buffer: ["buffer", "Buffer"],
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
     }),
-  ]);
-  config.resolve.extensions.push(".mjs");
+  ])
+  config.resolve.extensions.push('.mjs')
   config.module.rules.push({
     test: /\.m?js/,
     resolve: {
       fullySpecified: false,
     },
-  });
+  })
 
   return {
     ...config,
@@ -37,5 +39,5 @@ module.exports = function override(config) {
         module: /node_modules\/@gnosis.pm/,
       },
     ],
-  };
-};
+  }
+}
