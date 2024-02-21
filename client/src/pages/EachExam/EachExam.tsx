@@ -4,25 +4,41 @@ import { useParams } from 'react-router-dom'
 import { config } from '../../config'
 import 'react-datetime/css/react-datetime.css'
 import Toast from '../../components/Toast/Toast'
-import { readContracts, useContract, useSigner, useAccount } from 'wagmi'
-import { readContract, signMessage } from '@wagmi/core'
-import { CIDString, Web3Storage } from 'web3.storage'
+import { useContract, useSigner, useAccount, useContractRead } from 'wagmi'
+import { signMessage } from '@wagmi/core'
 import './EachExam.scss'
 import EnrollForm from '../../components/EnrollForm/EnrollForm'
 import SHA from 'sha.js'
 import { QRCodeDisplay } from '../../components/QRCode/QRCode'
+import axios from 'axios'
+import { upload } from '@spheron/browser-upload'
 
-interface ExamStatsData {
+interface ExamStudentData {
   name: string
   sheet: File | null
   verified: boolean
 }
 
+/**
+ * Custom hook to read contract
+ */
+const useReadContract = (
+  contractAddress: `0x${string}`,
+  functionName: string,
+  args: any[] = []
+) => {
+  const { data, isError, isLoading } = useContractRead({
+    address: contractAddress,
+    abi: config.examABI,
+    functionName,
+    args,
+  })
+  return { data, isError, isLoading }
+}
+
 function EachExam() {
-  const [isLoading, setLoading] = useState(true)
-  const [isEnrolled, setEnrolled] = useState(false)
-  const [enrolling, setEnrolling] = useState(false)
   const { examId }: any = useParams()
+  const [isLoading, setLoading] = useState(true)
   const [examData, setExamData] = useState<any>({
     address: examId,
     creator: '',
@@ -32,115 +48,90 @@ function EachExam() {
     startTime: '',
     endTime: '',
   })
-  const [toast, setToast] = useState<{
-    message: string
-    type: 'error' | 'success' | 'warning'
-  } | null>(null)
+  const [enrolledStudents, setEnrolledStudents] = useState<ExamStudentData[]>(
+    []
+  )
+
+  const [isEnrolled, setEnrolled] = useState(false)
+  const [enrolling, setEnrolling] = useState(false)
   const [file, setFile] = useState<File | null>(null) //answerFile
   const [dragging, setDragging] = useState(false)
   const [examTime, setExamTime] = useState(false)
   const [examOver, setExamOver] = useState(false)
   const [sheetHash, setSheetHash] = useState('')
-  const [enrolledStudents, setEnrolledStudents] = useState([])
+
   const [password, setPassword] = useState('')
   const [passwordMsg, setPasswordMsg] = useState('')
 
+  const [toast, setToast] = useState<{
+    message: string
+    type: 'error' | 'success' | 'warning'
+  } | null>(null)
   const closeToast = () => {
     setToast(null)
   }
 
-  const { data: signerData } = useSigner()
-  const { address, isConnected } = useAccount()
+  /** EXAM DATA LOADING */
+  const { data: creator } = useReadContract(examId, 'creator')
+  const { data: examMetaDataLink } = useReadContract(examId, 'examData')
+  const { data: startTime } = useReadContract(examId, 'startTime')
+  const { data: endTime } = useReadContract(examId, 'endTime')
 
-  const getExamData = async () => {
-    const examContract = {
-      address: examId,
-      abi: config.examABI,
+  useEffect(() => {
+    const fetchData = async () => {
+      if (examMetaDataLink) {
+        try {
+          const examMetaData = (
+            await axios.get(`${examMetaDataLink}/examDetails`)
+          ).data
+
+          const questionPaper = (
+            await axios.get(`${examMetaDataLink}/questionPaper`)
+          ).data
+
+          const data = {
+            address: examId as `0x${string}`,
+            creator: creator as `0x${string}`,
+            name: examMetaData.name as string,
+            info: examMetaData.info as string,
+            examSheet: questionPaper as File,
+            startTime: new Date(
+              parseInt((startTime as { _hex: string })._hex, 16)
+            ),
+            endTime: new Date(parseInt((endTime as { _hex: string })._hex, 16)),
+          }
+          setExamData(data)
+          setLoading(false)
+        } catch (error) {
+          console.error('Error fetching exam metadata:')
+        }
+      }
     }
-    const examDetails: any = await readContracts({
-      contracts: [
-        {
-          ...examContract,
-          functionName: 'creator',
-        },
-        {
-          ...examContract,
-          functionName: 'examData',
-        },
-        {
-          ...examContract,
-          functionName: 'startTime',
-        },
-        {
-          ...examContract,
-          functionName: 'endTime',
-        },
-      ],
-    })
-    const client = new Web3Storage({
-      token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
-    })
-    const res = await client.get(examDetails[1] as CIDString)
-    const files = await res?.files()
-    const examMeta = await files![0].arrayBuffer()
-    const uint8Array = new Uint8Array(examMeta)
-    const jsonStr = new TextDecoder().decode(uint8Array)
-    const jsonObj = JSON.parse(jsonStr)
-    const start = parseInt(examDetails[2]._hex, 16)
-    const end = parseInt(examDetails[3]._hex, 16)
-    const startDateTime = new Date(start)
-    const endDateTime = new Date(end)
-    const data = {
-      address: examId,
-      creator: examDetails[0],
-      name: jsonObj.name,
-      info: jsonObj.info,
-      examSheet: files![1],
-      startTime: startDateTime,
-      endTime: endDateTime,
-    }
-    setExamData(data)
-  }
+    fetchData()
+  }, [creator, examData, startTime, endTime, examMetaDataLink, examId])
 
-  const getEnrollmentStatus = async () => {
-    const data = await readContract({
-      address: examId,
-      abi: config.examABI,
-      functionName: 'isEnrolled',
-      args: [address],
-    })
-    setEnrolled(data as boolean)
-  }
+  /** EXAM ENROLLMENT DATA LOADING  */
+  const { data: enrolled } = useReadContract(examId, 'getEnrolledStudents')
 
-  const getEnrolledStudents = async () => {
-    const enrolled: any = await readContract({
-      address: examId,
-      abi: config.examABI,
-      functionName: 'getEnrolledStudents',
-    })
+  useEffect(() => {
+    if (!enrolled) return
 
-    let data: any = []
-    enrolled.map(async (each: any) => {
-      const client = new Web3Storage({
-        token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
-      })
-      const metaCID = await client.get(each[1] as CIDString)
-      const metaFile = await metaCID?.files()
-      const studentMeta: any = await metaFile![0].arrayBuffer()
-      const uint8Array = new Uint8Array(studentMeta)
-      const jsonStr = new TextDecoder().decode(uint8Array)
-      const jsonObj = JSON.parse(jsonStr)
+    let enrolledStudentData: {
+      name: string
+      sheet: File | null
+      verified: boolean
+    }[] = []
+
+    ;(enrolled as []).map(async (each: any) => {
+      const studentDetails = (await axios.get(`${each[1]}/studentDetails`)).data
+
       let verified = false
-
-      let sheet: File | null = null
+      let sheetFile: File | null = null
       try {
-        const sheetCID = await client.get(each[3] as CIDString)
-        const sheetFile = await sheetCID?.files()
-        sheet = sheetFile![0]
-
+        sheetFile = (await axios.get(`${each[3]}/answerSheet`)).data
         // generate hash and check
         const hash = SHA('sha256')
-        const dataBuffer = await readFileAsBuffer(sheet)
+        const dataBuffer = await readFileAsBuffer(sheetFile as File)
         hash.update(dataBuffer)
         const studentSheetHash = hash.digest('hex')
         if (studentSheetHash === each[2]) verified = true
@@ -148,62 +139,83 @@ function EachExam() {
         // do nothing as sheet is not found
       }
 
-      data.push({
-        name: jsonObj.name as string,
-        sheet: sheet,
+      enrolledStudentData.push({
+        name: studentDetails.name as string,
+        sheet: sheetFile,
         verified: verified,
       })
     })
 
-    setEnrolledStudents(data as any)
-  }
+    setEnrolledStudents(enrolledStudentData)
+  }, [enrolled])
 
-  useEffect(() => {
-    getExamData()
-    setLoading(false)
-  }, [])
-
-  useEffect(() => {
-    getEnrolledStudents()
-  }, [])
-
-  const handleDownload = (fileToBeDownloaded: File) => {
-    const anchor = document.createElement('a')
-    anchor.href = URL.createObjectURL(fileToBeDownloaded)
-    anchor.download = fileToBeDownloaded.name
-    document.body.appendChild(anchor)
-    anchor.click()
-    document.body.removeChild(anchor)
-  }
+  /** CURRENT USER ENROLLMENT STATUS */
+  const { address, isConnected } = useAccount()
+  const { data: isStudentEnrolled } = useReadContract(examId, 'isEnrolled', [
+    address,
+  ])
 
   useEffect(() => {
     if (isConnected) {
-      getEnrollmentStatus()
+      setEnrolled(isStudentEnrolled as boolean)
     }
-  }, [address])
+  }, [isConnected, isStudentEnrolled])
 
+  /** CONTRACT TRX SETUP */
+  const { data: signerData } = useSigner()
   const examContract = useContract({
     address: examId,
     abi: config.examABI,
     signerOrProvider: signerData,
   })
 
+  const handleDownload = (fileContent: string) => {
+    // Convert the file content string to a blob
+    const blob = new Blob([fileContent], { type: 'application/pdf' })
+
+    // Create a link element
+    const anchor = document.createElement('a')
+    anchor.href = URL.createObjectURL(blob)
+    anchor.download = 'questionPaper'
+
+    // Append the link to the body and trigger the download
+    document.body.appendChild(anchor)
+    anchor.click()
+
+    // Clean up
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(anchor.href)
+  }
+
+  const uploadToIPFS = async (files: File[]) => {
+    const response = await fetch(
+      `${config.backendURL}/api/ipfs/initiate-upload`
+    )
+    const resJson = await response.json()
+    const token = resJson.uploadToken
+
+    let currentlyUploaded = 0
+    const { protocolLink } = await upload(files, {
+      token,
+      onChunkUploaded: (uploadedSize, totalSize) => {
+        currentlyUploaded += uploadedSize
+        console.log(`Uploaded ${currentlyUploaded} of ${totalSize} Bytes.`)
+      },
+    })
+    return protocolLink
+  }
+
   const enrollInExam = async () => {
     try {
       setEnrolling(true)
       // -----------UPLOAD TO IPFS-----------------------------
-      const client = new Web3Storage({
-        token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
-      })
       const enrollBlob = new Blob([JSON.stringify(enrollData)], {
         type: 'application/json',
       })
-      const enroll = {
-        name: enrollData.name,
+      const enrolledStudentFile = new File([enrollBlob], 'studentDetails', {
         type: 'application/json',
-        stream: () => enrollBlob.stream(),
-      }
-      const hash = await client.put([enroll])
+      })
+      const hash = await uploadToIPFS([enrolledStudentFile])
       // -----------UPLOAD TO IPFS-----------------------------
       // -----------CONTRACT CALL-----------------------------
       const tx = await examContract?.enroll(hash)
@@ -215,7 +227,7 @@ function EachExam() {
         message: 'Unable To Enroll in Exam !!!',
         type: 'error',
       })
-      console.log(err)
+      console.error(err)
     }
   }
 
@@ -254,13 +266,37 @@ function EachExam() {
     setDragging(false)
 
     if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      setFile(event.dataTransfer.files[0])
+      const selectedFile = event.dataTransfer.files[0]
+      // Ensure the file is a PDF
+      if (selectedFile.type === 'application/pdf') {
+        const renamedFile = new File([selectedFile], 'answerSheet', {
+          type: selectedFile.type,
+        })
+        setFile(renamedFile)
+      } else {
+        setToast({
+          message: 'Please select a PDF file.',
+          type: 'error',
+        })
+      }
     }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0])
+      const selectedFile = event.target.files[0]
+      // Ensure the file is a PDF
+      if (selectedFile.type === 'application/pdf') {
+        const renamedFile = new File([selectedFile], 'answerSheet', {
+          type: selectedFile.type,
+        })
+        setFile(renamedFile)
+      } else {
+        setToast({
+          message: 'Please select a PDF file.',
+          type: 'error',
+        })
+      }
     }
   }
 
@@ -297,15 +333,10 @@ function EachExam() {
       }
       setLoading(true)
       // -----------UPLOAD TO IPFS-----------------------------
-      const client = new Web3Storage({
-        token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
+      const answerSheet = new File([file], 'answerSheet', {
+        type: 'application/pdf',
       })
-      const filelike = {
-        name: file.name,
-        type: 'text/plain',
-        stream: () => file.stream(),
-      }
-      const hash = await client.put([filelike])
+      const hash = await uploadToIPFS([answerSheet])
       // -----------UPLOAD TO IPFS-----------------------------
       // -----------CONTRACT CALL-----------------------------
       const tx = await examContract?.addSheet(hash)
@@ -321,14 +352,14 @@ function EachExam() {
   }
 
   // Function to render each card
-  const renderCard = (cardData: ExamStatsData) => {
+  const renderCard = (cardData: ExamStudentData) => {
     return (
       <div className="exam-card" key={cardData.name}>
         <div className="exam-name">{cardData.name}</div>
         {cardData.sheet && (
           <button
             className="answer-sheet-button"
-            onClick={() => handleDownload(cardData.sheet as File)}
+            onClick={() => handleDownload(cardData.sheet as any as string)}
           >
             Answer Sheet
           </button>
@@ -343,7 +374,7 @@ function EachExam() {
   }
 
   // Function to group the cards in each row
-  const groupCards = (cards: ExamStatsData[], size: number) => {
+  const groupCards = (cards: ExamStudentData[], size: number) => {
     const groups = []
     for (let i = 0; i < cards.length; i += size) {
       groups.push(cards.slice(i, i + size))

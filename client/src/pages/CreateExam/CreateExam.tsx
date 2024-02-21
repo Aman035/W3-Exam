@@ -1,169 +1,200 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Web3Storage } from "web3.storage";
-import React, { useEffect, useState } from "react";
-import "react-dropzone-uploader/dist/styles.css";
-import "./CreateExam.scss";
-import styled from "styled-components";
-import { generateRandomSecret } from "../../utils/aes";
-import { useNavigate } from "react-router-dom";
-import { useSigner, useContract } from "wagmi";
-import { ethers } from "ethers";
-import { config } from "../../config";
-import Datetime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
-import moment from "moment";
-import Toast from "../../components/Toast/Toast";
-import axios from "axios";
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+import React, { useEffect, useState } from 'react'
+import 'react-dropzone-uploader/dist/styles.css'
+import './CreateExam.scss'
+import styled from 'styled-components'
+import { generateRandomSecret } from '../../utils/aes'
+import { useNavigate } from 'react-router-dom'
+import { useSigner, useContract } from 'wagmi'
+import { ethers } from 'ethers'
+import { config } from '../../config'
+import Datetime from 'react-datetime'
+import 'react-datetime/css/react-datetime.css'
+import moment from 'moment'
+import Toast from '../../components/Toast/Toast'
+import axios from 'axios'
+import { upload } from '@spheron/browser-upload'
 
 function CreateExam() {
-  const [loading, setLoading] = useState(false);
-  const [stepFlow, setStepFlow] = useState(0);
-  const [name, setName] = useState(""); //examName
-  const [info, setInfo] = useState(""); //examInfo
-  const [start, setStart] = useState<number | undefined>();
-  const [end, setEnd] = useState<number | undefined>();
-  const [file, setFile] = useState<File | null>(null); //questionFile
-  const [secret, setSecret] = useState(""); //file encryption aes key
-  const [dragging, setDragging] = useState(false);
-  const [examHash, setExamHash] = useState("");
+  const [loading, setLoading] = useState(false)
+  const [stepFlow, setStepFlow] = useState(0)
+  const [name, setName] = useState('') //examName
+  const [info, setInfo] = useState('') //examInfo
+  const [start, setStart] = useState<number | undefined>()
+  const [end, setEnd] = useState<number | undefined>()
+  const [file, setFile] = useState<File | null>(null) //questionFile
+  const [secret, setSecret] = useState('') //file encryption aes key
+  const [dragging, setDragging] = useState(false)
+  const [examHash, setExamHash] = useState('')
   const [toast, setToast] = useState<{
-    message: string;
-    type: "error" | "success" | "warning";
-  } | null>(null);
+    message: string
+    type: 'error' | 'success' | 'warning'
+  } | null>(null)
 
   const closeToast = () => {
-    setToast(null);
-  };
+    setToast(null)
+  }
 
   const handleStartChange = (date: moment.Moment | string) => {
-    const epoch = moment(date).valueOf();
-    setStart(epoch);
-  };
+    const epoch = moment(date).valueOf()
+    setStart(epoch)
+  }
 
   const handleEndChange = (date: moment.Moment | string) => {
-    const epoch = moment(date).valueOf();
-    setEnd(epoch);
-  };
+    const epoch = moment(date).valueOf()
+    setEnd(epoch)
+  }
 
   const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragging(true);
-  };
+    event.preventDefault()
+    setDragging(true)
+  }
 
   const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragging(false);
-  };
+    event.preventDefault()
+    setDragging(false)
+  }
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+    event.preventDefault()
+  }
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragging(false);
+    event.preventDefault()
+    setDragging(false)
 
     if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      setFile(event.dataTransfer.files[0]);
+      const selectedFile = event.dataTransfer.files[0]
+      // Ensure the file is a PDF
+      if (selectedFile.type === 'application/pdf') {
+        setFile(selectedFile)
+      } else {
+        setToast({
+          message: 'Please select a PDF file.',
+          type: 'error',
+        })
+      }
     }
-  };
+  }
+
+  const uploadToIPFS = async (files: File[]) => {
+    const response = await fetch(
+      `${config.backendURL}/api/ipfs/initiate-upload`
+    )
+    const resJson = await response.json()
+    const token = resJson.uploadToken
+
+    let currentlyUploaded = 0
+    const { protocolLink } = await upload(files, {
+      token,
+      onChunkUploaded: (uploadedSize, totalSize) => {
+        currentlyUploaded += uploadedSize
+        console.log(`Uploaded ${currentlyUploaded} of ${totalSize} Bytes.`)
+      },
+    })
+    return protocolLink
+  }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0]);
+      const selectedFile = event.target.files[0]
+      // Ensure the file is a PDF
+      if (selectedFile.type === 'application/pdf') {
+        setFile(selectedFile)
+      } else {
+        setToast({
+          message: 'Please select a PDF file.',
+          type: 'error',
+        })
+      }
     }
-  };
+  }
 
   const handleFileUpload = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      if (file && name !== "" && info !== "") {
-        // -----------GENERATING PASS-----------------------------
-        // -----------GENERATING PASS-----------------------------
+      if (file && name !== '' && info !== '') {
         // -----------ENCRYPTING PDF-----------------------------
-        const formData = new FormData();
-        formData.append("File", file);
-        formData.append("UserPassword", secret);
-        formData.append("OwnerPassword", secret);
-        let encryptedFile: Blob;
+        const formData = new FormData()
+        formData.append('File', file)
+        formData.append('UserPassword', secret)
+        formData.append('OwnerPassword', secret)
+        let encryptedFile: Blob
         const response = await axios.post(
           `${config.convertAPIURL}?Secret=${config.convertAPIToken}&download=attachment`,
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
+              'Content-Type': 'multipart/form-data',
             },
-            responseType: "blob",
+            responseType: 'blob',
           }
-        );
-        encryptedFile = response.data;
+        )
+        encryptedFile = response.data
         // -----------ENCRYPTING PDF-----------------------------
         // -----------UPLOAD TO IPFS-----------------------------
-        const client = new Web3Storage({
-          token: process.env.REACT_APP_WEB3_STORAGE_TOKEN!,
-        });
-        const filelike = {
-          name: file.name,
-          type: "text/plain",
-          stream: () => encryptedFile.stream(),
-        };
-        const examObj = {
-          name: name,
-          info: info,
-        };
-        const examBlob = new Blob([JSON.stringify(examObj)], {
-          type: "application/json",
-        });
-        const examData = {
-          name: name,
-          type: "application/json",
-          stream: () => examBlob.stream(),
-        };
-        const hash = await client.put([examData, filelike]);
-        setExamHash(hash);
-        setLoading(false);
-        setStepFlow(2);
+        const examBlob = new Blob([JSON.stringify({ name, info })], {
+          type: 'application/json',
+        })
+        const examDetailsFile = new File([examBlob], 'examDetails', {
+          type: 'application/json',
+        })
+        const encryptedQuestionFile = new File(
+          [encryptedFile],
+          'questionPaper',
+          {
+            type: 'application/pdf',
+          }
+        )
+        const uploadId = await uploadToIPFS([
+          examDetailsFile,
+          encryptedQuestionFile,
+        ])
+        setExamHash(uploadId)
+        setLoading(false)
+        setStepFlow(2)
       }
       // -----------UPLOAD TO IPFS-----------------------------
     } catch (err) {
+      setLoading(false)
       setToast({
-        message: "Unable To Create Exam !!!\n Data Uploading Failed",
-        type: "error",
-      });
+        message: 'Unable To Create Exam !!!\n Data Uploading Failed',
+        type: 'error',
+      })
     }
-  };
+  }
 
-  const { data: signerData } = useSigner();
+  const { data: signerData } = useSigner()
 
   const examFactory = useContract({
     address: config.examFactoryAddress,
     abi: config.examFactoryABI,
     signerOrProvider: signerData,
-  });
+  })
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handlecreateExam = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const amount = ethers.utils.parseEther("0.005"); // or some other value
+      const amount = ethers.utils.parseEther('0.005') // or some other value
       const tx = await examFactory?.createExam(examHash, start, end, {
         value: amount,
-      });
-      await tx.wait();
-      navigate("/exams");
+      })
+      await tx.wait()
+      navigate('/exams')
     } catch (err) {
       setToast({
-        message: "Unable To Create Exam !!!\n Plz Check the connected wallet",
-        type: "error",
-      });
+        message: 'Unable To Create Exam !!!\n Plz Check the connected wallet',
+        type: 'error',
+      })
     }
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   useEffect(() => {
-    setSecret(generateRandomSecret(16));
-  }, []);
+    setSecret(generateRandomSecret(16))
+  }, [])
   return (
     <div className="container">
       <div>
@@ -223,21 +254,21 @@ function CreateExam() {
             <div className="date-range-picker">
               <div className="picker-wrapper">
                 <Datetime
-                  value={start ? moment(start).toDate() : ""}
+                  value={start ? moment(start).toDate() : ''}
                   onChange={handleStartChange}
-                  inputProps={{ placeholder: "Start date/time" }}
+                  inputProps={{ placeholder: 'Start date/time' }}
                 />
               </div>
               <div className="picker-wrapper">
                 <Datetime
-                  value={end ? moment(end).toDate() : ""}
+                  value={end ? moment(end).toDate() : ''}
                   onChange={handleEndChange}
-                  inputProps={{ placeholder: "End date/time" }}
+                  inputProps={{ placeholder: 'End date/time' }}
                 />
               </div>
             </div>
 
-            {name !== "" && info !== "" && start && end && (
+            {name !== '' && info !== '' && start && end && (
               <button className="next-button" onClick={() => setStepFlow(1)}>
                 Next
               </button>
@@ -249,7 +280,7 @@ function CreateExam() {
         {stepFlow === 1 && (
           <>
             <div
-              className={`upload-pdf ${dragging ? "dragging" : ""}`}
+              className={`upload-pdf ${dragging ? 'dragging' : ''}`}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
@@ -259,10 +290,10 @@ function CreateExam() {
                 id="file-upload"
                 type="file"
                 onChange={handleFileSelect}
-                style={{ display: "none" }}
+                style={{ display: 'none' }}
               />
               <div className="label-container">
-                <label style={{ marginRight: "5px" }}>Drag and Drop or</label>
+                <label style={{ marginRight: '5px' }}>Drag and Drop or</label>
                 <label htmlFor="file-upload" className="browse-label">
                   Browse to Choose
                 </label>
@@ -327,12 +358,12 @@ function CreateExam() {
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
     </div>
-  );
+  )
 }
 
 interface TabProps {
-  type?: boolean;
-  active?: boolean;
+  type?: boolean
+  active?: boolean
 }
 
 // css styles
@@ -342,7 +373,7 @@ const Step = styled.div<TabProps>`
   background: #cfd7e4;
   border-radius: 13px;
   ${({ type }) => type && `background: #3898FF;`};
-`;
+`
 
 const Tab = styled.div<TabProps>`
   position: relative;
@@ -394,6 +425,6 @@ const Tab = styled.div<TabProps>`
         }
       }
     `};
-`;
+`
 
-export default CreateExam;
+export default CreateExam
