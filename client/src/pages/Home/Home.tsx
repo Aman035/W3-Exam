@@ -1,23 +1,30 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import './Home.scss'
 import studentImage from '../../assets/Home/student.png'
-function Home() {
-  const phrases = [
-    'Conduct secure online exams',
-    'Ensure exam integrity',
-    'Enabling remote exam access',
-    'Leverage the power of decentralisation',
-  ]
+
+const Home = () => {
+  const phrases = useMemo(
+    () => [
+      'Conduct secure online exams',
+      'Ensure exam integrity',
+      'Enabling remote exam access',
+      'Leverage the power of decentralisation',
+    ],
+    []
+  )
+
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
   const [currentPhrase, setCurrentPhrase] = useState(phrases[0])
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const nextPhraseIndex = (currentPhraseIndex + 1) % phrases.length
-      setCurrentPhraseIndex(nextPhraseIndex)
-      setCurrentPhrase(phrases[nextPhraseIndex])
+      setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length)
     }, 2000)
     return () => clearInterval(intervalId)
+  }, [phrases])
+
+  useEffect(() => {
+    setCurrentPhrase(phrases[currentPhraseIndex])
   }, [currentPhraseIndex, phrases])
 
   return (
