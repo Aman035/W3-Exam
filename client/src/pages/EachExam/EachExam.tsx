@@ -12,6 +12,7 @@ import SHA from 'sha.js'
 import { QRCodeDisplay } from '../../components/QRCode/QRCode'
 import axios from 'axios'
 import { upload } from '@spheron/browser-upload'
+import Loader from '../../components/Loader/Loader'
 
 interface ExamStudentData {
   name: string
@@ -38,7 +39,8 @@ const useReadContract = (
 
 function EachExam() {
   const { examId }: any = useParams()
-  const [isLoading, setLoading] = useState(true)
+  const [isExamDataLoading, setExamDataLoading] = useState(true)
+  const [isLoading, setLoading] = useState(false)
   const [examData, setExamData] = useState<any>({
     address: examId,
     creator: '',
@@ -85,8 +87,10 @@ function EachExam() {
             await axios.get(`${examMetaDataLink}/examDetails`)
           ).data
 
-          const questionPaper = (
-            await axios.get(`${examMetaDataLink}/questionPaper`)
+          const examSheetFile = (
+            await axios.get(`${examMetaDataLink}/questionPaper`, {
+              responseType: 'blob',
+            })
           ).data
 
           const data = {
@@ -94,21 +98,21 @@ function EachExam() {
             creator: creator as `0x${string}`,
             name: examMetaData.name as string,
             info: examMetaData.info as string,
-            examSheet: questionPaper as File,
+            examSheet: examSheetFile,
             startTime: new Date(
               parseInt((startTime as { _hex: string })._hex, 16)
             ),
             endTime: new Date(parseInt((endTime as { _hex: string })._hex, 16)),
           }
           setExamData(data)
-          setLoading(false)
+          setExamDataLoading(false)
         } catch (error) {
           console.error('Error fetching exam metadata:')
         }
       }
     }
     fetchData()
-  }, [creator, examData, startTime, endTime, examMetaDataLink, examId])
+  }, [creator, startTime, endTime, examMetaDataLink, examId])
 
   /** EXAM ENROLLMENT DATA LOADING  */
   const { data: enrolled } = useReadContract(examId, 'getEnrolledStudents')
@@ -169,22 +173,26 @@ function EachExam() {
     signerOrProvider: signerData,
   })
 
-  const handleDownload = (fileContent: string) => {
-    // Convert the file content string to a blob
-    const blob = new Blob([fileContent], { type: 'application/pdf' })
-
+  const handleDownload = (file: File) => {
     // Create a link element
     const anchor = document.createElement('a')
-    anchor.href = URL.createObjectURL(blob)
-    anchor.download = 'questionPaper'
+    try {
+      anchor.href = URL.createObjectURL(file)
+      anchor.download = 'questionPaper'
+      anchor.setAttribute('aria-label', 'Download question paper')
 
-    // Append the link to the body and trigger the download
-    document.body.appendChild(anchor)
-    anchor.click()
-
-    // Clean up
-    document.body.removeChild(anchor)
-    URL.revokeObjectURL(anchor.href)
+      // Append the link to the body and trigger the download
+      document.body.appendChild(anchor)
+      anchor.click()
+    } catch (error) {
+      console.error('Error occurred during file download:', error)
+    } finally {
+      // Clean up
+      if (anchor) {
+        document.body.removeChild(anchor)
+        URL.revokeObjectURL(anchor.href)
+      }
+    }
   }
 
   const uploadToIPFS = async (files: File[]) => {
@@ -359,7 +367,7 @@ function EachExam() {
         {cardData.sheet && (
           <button
             className="answer-sheet-button"
-            onClick={() => handleDownload(cardData.sheet as any as string)}
+            onClick={() => handleDownload(cardData.sheet as File)}
           >
             Answer Sheet
           </button>
@@ -430,24 +438,31 @@ function EachExam() {
       <div className="connect">
         <ConnectButton />
       </div>
-      <p>
-        <strong>Address:</strong> {examData.address}
-      </p>
-      <p>
-        <strong>Creator:</strong> {examData.creator}
-      </p>
-      <p>
-        <strong>Start Time:</strong> {examData.startTime.toLocaleString()}
-      </p>
-      <p>
-        <strong>End Time:</strong> {examData.endTime.toLocaleString()}
-      </p>
-      <button
-        className="download-button"
-        onClick={() => handleDownload(examData.examSheet)}
-      >
-        Download Exam Sheet
-      </button>
+      {isExamDataLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <p>
+            <strong>Address:</strong> {examData.address}
+          </p>
+          <p>
+            <strong>Creator:</strong> {examData.creator}
+          </p>
+          <p>
+            <strong>Start Time:</strong> {examData.startTime.toLocaleString()}
+          </p>
+          <p>
+            <strong>End Time:</strong> {examData.endTime.toLocaleString()}
+          </p>
+          <button
+            className="download-button"
+            onClick={() => handleDownload(examData.examSheet)}
+          >
+            Download Exam Sheet
+          </button>
+        </>
+      )}
+
       {isConnected && address === examData.creator && (
         <div className="pass">
           <form onSubmit={handlePublish}>
