@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-export const IPFSGet = async (cid: string): Promise<any> => {
+export const IPFSGet = async (ipfsUrl: string): Promise<any> => {
   try {
     // Perform axios GET request to the specified URL
-    const response = await axios.get(`https://ipfs.spheron.link/ipfs/${cid}`)
+    const response = await axios.get(ipfsUrl)
 
     // Check if response is successful
     if (response.status === 200) {
