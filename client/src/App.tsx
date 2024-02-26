@@ -25,7 +25,7 @@ const { chains, provider } = configureChains(
   [polygonMumbai],
   [
     alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_KEY! }),
-    publicProvider(),
+    // publicProvider(), // Don't use public providers, they are not reliable
   ]
 )
 

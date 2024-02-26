@@ -54,7 +54,7 @@ const Exams = () => {
         <h1 className="title">Exams</h1>
         <h3 className="info">You can browse all the created Exams</h3>
       </div>
-      {isLoading ? (
+      {isLoading || !examsAddress ? (
         <Loader />
       ) : (
         <>
@@ -101,7 +101,7 @@ const ExamCard = ({ examAddress }: { examAddress: `0x${string}` }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (examMetaDataLink) {
+      if (examMetaDataLink && creator && startTime && endTime) {
         try {
           const examMetaData = (
             await axios.get(`${examMetaDataLink}/examDetails`)
@@ -122,7 +122,7 @@ const ExamCard = ({ examAddress }: { examAddress: `0x${string}` }) => {
       }
     }
     fetchData()
-  }, [creator, examData, startTime, endTime, examAddress, examMetaDataLink])
+  }, [creator, startTime, endTime, examAddress, examMetaDataLink])
 
   return <div>{examData && <Card {...examData} />}</div>
 }
