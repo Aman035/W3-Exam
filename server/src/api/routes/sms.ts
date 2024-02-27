@@ -33,7 +33,7 @@ export default (app: Router) => {
           contractAddress
         )
         result.forEach(async (each: any) => {
-          const detailsIpfsUrl = each[1]
+          const detailsIpfsUrl = `${each[1]}/studentDetails`
           const details = await IPFSGet(detailsIpfsUrl)
           try {
             await sendSMS(`Exam Password: ${msg}`, `whatsapp:${details.phone}`)
