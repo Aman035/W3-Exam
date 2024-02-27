@@ -10,7 +10,7 @@
     <!-- <img src="images/logo.png" alt="Logo" width="80" height="80"> -->
   <h3 align="center">W3-Exam</h3>
   <p align="center">
-    <a href="https://w3exam.netlify.app">View Demo</a>
+    <a href="https://w3-exam.netlify.app/">View Demo</a>
     ·
     <a href="https://github.com/Aman035/W3-Exam/issues">Report Bug</a>
     ·

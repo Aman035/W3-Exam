@@ -132,7 +132,11 @@ function EachExam() {
       let verified = false
       let sheetFile: File | null = null
       try {
-        sheetFile = (await axios.get(`${each[3]}/answerSheet`)).data
+        sheetFile = (
+          await axios.get(`${each[3]}/answerSheet`, {
+            responseType: 'blob',
+          })
+        ).data
         // generate hash and check
         const hash = SHA('sha256')
         const dataBuffer = await readFileAsBuffer(sheetFile as File)
@@ -178,8 +182,7 @@ function EachExam() {
     const anchor = document.createElement('a')
     try {
       anchor.href = URL.createObjectURL(file)
-      anchor.download = 'questionPaper'
-      anchor.setAttribute('aria-label', 'Download question paper')
+      anchor.download = 'w3-exam-file'
 
       // Append the link to the body and trigger the download
       document.body.appendChild(anchor)
