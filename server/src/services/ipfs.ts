@@ -8,7 +8,8 @@ export const IPFSGet = async (ipfsUrl: string): Promise<any> => {
     // Check if response is successful
     if (response.status === 200) {
       // Parse the JSON response data
-      const jsonObj = JSON.parse(response.data)
+      console.log(response.data)
+      const jsonObj = response.data
       return jsonObj
     } else {
       // Handle unsuccessful response
